@@ -1,0 +1,16 @@
+{
+  "ckpt": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "{{checkpoint}}"}},
+  "latent": {"class_type": "EmptyLatentImage", "inputs": {"width": "{{width}}", "height": "{{height}}", "batch_size": 1}},
+  "pos": {"class_type": "CLIPTextEncode", "inputs": {"text": "{{prompt}}", "clip": ["ckpt", 1]}},
+  "neg": {"class_type": "CLIPTextEncode", "inputs": {"text": "{{negative}}", "clip": ["ckpt", 1]}},
+  "sampler": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": "{{seed}}", "steps": "{{steps}}", "cfg": "{{cfg}}",
+      "sampler_name": "{{sampler}}", "scheduler": "{{scheduler}}", "denoise": 1.0,
+      "model": ["ckpt", 0], "positive": ["pos", 0], "negative": ["neg", 0], "latent_image": ["latent", 0]
+    }
+  },
+  "decode": {"class_type": "VAEDecode", "inputs": {"samples": ["sampler", 0], "vae": ["ckpt", 2]}},
+  "save": {"class_type": "SaveImage", "inputs": {"filename_prefix": "vnflow", "images": ["decode", 0]}}
+}

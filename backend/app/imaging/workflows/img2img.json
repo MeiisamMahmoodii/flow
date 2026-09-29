@@ -1,0 +1,18 @@
+{
+  "ckpt": {"class_type": "CheckpointLoaderSimple", "inputs": {"ckpt_name": "{{checkpoint}}"}},
+  "load": {"class_type": "LoadImage", "inputs": {"image": "{{init_image}}"}},
+  "scale": {"class_type": "ImageScale", "inputs": {"image": ["load", 0], "upscale_method": "lanczos", "width": "{{width}}", "height": "{{height}}", "crop": "center"}},
+  "encode": {"class_type": "VAEEncode", "inputs": {"pixels": ["scale", 0], "vae": ["ckpt", 2]}},
+  "pos": {"class_type": "CLIPTextEncode", "inputs": {"text": "{{prompt}}", "clip": ["ckpt", 1]}},
+  "neg": {"class_type": "CLIPTextEncode", "inputs": {"text": "{{negative}}", "clip": ["ckpt", 1]}},
+  "sampler": {
+    "class_type": "KSampler",
+    "inputs": {
+      "seed": "{{seed}}", "steps": "{{steps}}", "cfg": "{{cfg}}",
+      "sampler_name": "{{sampler}}", "scheduler": "{{scheduler}}", "denoise": "{{strength}}",
+      "model": ["ckpt", 0], "positive": ["pos", 0], "negative": ["neg", 0], "latent_image": ["encode", 0]
+    }
+  },
+  "decode": {"class_type": "VAEDecode", "inputs": {"samples": ["sampler", 0], "vae": ["ckpt", 2]}},
+  "save": {"class_type": "SaveImage", "inputs": {"filename_prefix": "vnflow", "images": ["decode", 0]}}
+}
